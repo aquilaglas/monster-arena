@@ -1,0 +1,49 @@
+{
+  "appId": "com.monsterarena.app",
+  "productName": "Arène des Monstres",
+
+  "files": [
+    ".next/standalone/**/*",
+    ".next/static/**/*",
+    "public/**/*",
+    "electron/dist/**/*",
+    "package.json"
+  ],
+
+  "extraResources": [
+    {
+      "from": "public",
+      "to": "public"
+    }
+  ],
+
+  "directories": {
+    "buildResources": "public"
+  },
+
+  "asar": true,
+
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "category": "Game",
+    "icon": "public/icon.png"
+  },
+
+  "mac": {
+    "target": ["dmg", "zip"],
+    "category": "public.app-category.games",
+    "icon": "public/icon.icns"
+  },
+
+  "win": {
+    "target": ["nsis"],
+    "icon": "public/icon.ico"
+  },
+
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}
