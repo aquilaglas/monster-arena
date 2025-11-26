@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initializeCombat, executeTurn } from './combat';
+import { initializeCombat, executeTurn } from './combat.client';
 
 describe('Combat System', () => {
   it('should initialize combat state correctly', () => {

@@ -34,6 +34,8 @@ export interface PlayerMonster {
   experience: number;
   training_count: number;
   is_active: boolean;
+  is_training: boolean;
+  training_end_time: Date | null;
   monster_type?: MonsterType;
 }
 

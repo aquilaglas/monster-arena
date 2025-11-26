@@ -3,28 +3,28 @@
 -- Insertion des types de monstres
 INSERT INTO monster_types (name, description, base_hp, base_attack, base_defense, base_speed, price, image_url, is_boss) VALUES
 -- Monstres de base (moins chers)
-('Flammy', 'Un petit dragon de feu espiègle qui crache des flammes', 80, 45, 30, 55, 500, '/monsters/flammy.png', FALSE),
-('Aqualis', 'Une créature aquatique agile et mystérieuse', 90, 35, 40, 60, 500, '/monsters/aqualis.png', FALSE),
-('Terros', 'Un monstre de terre robuste avec une défense solide', 100, 40, 50, 30, 500, '/monsters/terros.png', FALSE),
-('Voltix', 'Un être électrique rapide comme l''éclair', 75, 50, 25, 70, 600, '/monsters/voltix.png', FALSE),
+('Flammy', 'Un petit dragon de feu espiègle qui crache des flammes', 80, 45, 30, 55, 500, '/monsters/flammy.svg', FALSE),
+('Aqualis', 'Une créature aquatique agile et mystérieuse', 90, 35, 40, 60, 500, '/monsters/aqualis.svg', FALSE),
+('Terros', 'Un monstre de terre robuste avec une défense solide', 100, 40, 50, 30, 500, '/monsters/terros.svg', FALSE),
+('Voltix', 'Un être électrique rapide comme l''éclair', 75, 50, 25, 70, 600, '/monsters/voltix.svg', FALSE),
 
 -- Monstres intermédiaires
-('Infernus', 'Un dragon de feu puissant aux flammes dévastatrices', 120, 65, 45, 50, 1500, '/monsters/infernus.png', FALSE),
-('Glacior', 'Un colosse de glace aux attaques glaciales', 130, 55, 60, 40, 1500, '/monsters/glacior.png', FALSE),
-('Zephyr', 'Un esprit du vent insaisissable et rapide', 100, 60, 35, 80, 1800, '/monsters/zephyr.png', FALSE),
-('Titanor', 'Un géant de roche d''une force impressionnante', 150, 70, 70, 25, 2000, '/monsters/titanor.png', FALSE),
+('Infernus', 'Un dragon de feu puissant aux flammes dévastatrices', 120, 65, 45, 50, 1500, '/monsters/infernus.svg', FALSE),
+('Glacior', 'Un colosse de glace aux attaques glaciales', 130, 55, 60, 40, 1500, '/monsters/glacior.svg', FALSE),
+('Zephyr', 'Un esprit du vent insaisissable et rapide', 100, 60, 35, 80, 1800, '/monsters/zephyr.svg', FALSE),
+('Titanor', 'Un géant de roche d''une force impressionnante', 150, 70, 70, 25, 2000, '/monsters/titanor.svg', FALSE),
 
 -- Monstres avancés
-('Shadowclaw', 'Une bête des ténèbres aux griffes acérées', 110, 80, 40, 65, 3000, '/monsters/shadowclaw.png', FALSE),
-('Luminos', 'Un ange de lumière aux pouvoirs divins', 115, 75, 50, 70, 3200, '/monsters/luminos.png', FALSE),
-('Venomfang', 'Un serpent toxique aux crocs empoisonnés', 105, 70, 45, 75, 2800, '/monsters/venomfang.png', FALSE),
-('Crystallia', 'Une créature de cristal aux reflets éblouissants', 125, 65, 65, 55, 3500, '/monsters/crystallia.png', FALSE),
+('Shadowclaw', 'Une bête des ténèbres aux griffes acérées', 110, 80, 40, 65, 3000, '/monsters/shadowclaw.svg', FALSE),
+('Luminos', 'Un ange de lumière aux pouvoirs divins', 115, 75, 50, 70, 3200, '/monsters/luminos.svg', FALSE),
+('Venomfang', 'Un serpent toxique aux crocs empoisonnés', 105, 70, 45, 75, 2800, '/monsters/venomfang.svg', FALSE),
+('Crystallia', 'Une créature de cristal aux reflets éblouissants', 125, 65, 65, 55, 3500, '/monsters/crystallia.svg', FALSE),
 
 -- Boss
-('Pyrothor', 'Boss de feu légendaire - Le Seigneur des Flammes Éternelles', 200, 90, 60, 50, 0, '/monsters/boss_pyrothor.png', TRUE),
-('Leviathan', 'Boss aquatique légendaire - Le Maître des Profondeurs', 220, 80, 75, 45, 0, '/monsters/boss_leviathan.png', TRUE),
-('Stormlord', 'Boss électrique légendaire - Le Roi des Tempêtes', 180, 100, 50, 80, 0, '/monsters/boss_stormlord.png', TRUE),
-('Chronos', 'Boss ultime légendaire - Le Gardien du Temps', 250, 95, 80, 60, 0, '/monsters/boss_chronos.png', TRUE);
+('Pyrothor', 'Boss de feu légendaire - Le Seigneur des Flammes Éternelles', 200, 90, 60, 50, 0, '/monsters/boss_pyrothor.svg', TRUE),
+('Leviathan', 'Boss aquatique légendaire - Le Maître des Profondeurs', 220, 80, 75, 45, 0, '/monsters/boss_leviathan.svg', TRUE),
+('Stormlord', 'Boss électrique légendaire - Le Roi des Tempêtes', 180, 100, 50, 80, 0, '/monsters/boss_stormlord.svg', TRUE),
+('Chronos', 'Boss ultime légendaire - Le Gardien du Temps', 250, 95, 80, 60, 0, '/monsters/boss_chronos.svg', TRUE);
 
 -- Insertion d'un joueur de test
 INSERT INTO players (name, money, current_arena_level) VALUES

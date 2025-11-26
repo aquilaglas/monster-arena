@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" fill="#ff3333"/>
+  <rect x="16" y="16" width="224" height="224" fill="white" stroke="black" stroke-width="4"/>
+  <text x="128" y="140" font-size="80" text-anchor="middle" dominant-baseline="middle">🐲</text>
+  <text x="128" y="220" font-size="16" text-anchor="middle" fill="black" font-family="monospace">INFERNUS</text>
+</svg>

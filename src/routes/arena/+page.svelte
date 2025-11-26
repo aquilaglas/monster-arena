@@ -4,7 +4,7 @@
   import Card from '$lib/components/Card.svelte';
   import StatBar from '$lib/components/StatBar.svelte';
   import { gameState, updateMoney } from '$lib/stores/game.svelte';
-  import { initializeCombat, executeTurn } from '$lib/game/combat';
+  import { initializeCombat, executeTurn } from '$lib/game/combat.client';
   import type { ArenaOpponent, CombatState } from '$lib/types';
 
   let opponent = $state<ArenaOpponent | null>(null);
@@ -36,6 +36,13 @@
 
   function startCombat() {
     if (!gameState.activeMonster || !opponent) return;
+
+    // Vérifier si le monstre est en entraînement
+    if (gameState.activeMonster.is_training) {
+      alert('Votre monstre est en entraînement ! Attendez qu\'il termine.');
+      return;
+    }
+
     combatState = initializeCombat(gameState.activeMonster, opponent);
   }
 
@@ -179,7 +186,18 @@
         </h3>
         <p class="pixel-text text-sm mb-4">Niveau {opponent.monster_level}</p>
         <p class="pixel-text text-sm mb-4">Récompense: {opponent.reward_money}€</p>
-        <Button onclick={startCombat}>⚔️ Combattre !</Button>
+
+        {#if gameState.activeMonster?.is_training}
+          <div class="mb-4 p-3 bg-red-100 border-4 border-red-500">
+            <p class="pixel-text text-xs text-red-800">
+              ⚠️ Votre monstre est en entraînement ! Attendez qu'il termine avant de combattre.
+            </p>
+          </div>
+        {/if}
+
+        <Button onclick={startCombat} disabled={gameState.activeMonster?.is_training}>
+          ⚔️ Combattre !
+        </Button>
       </Card>
 
       <Card title="Prochains adversaires">

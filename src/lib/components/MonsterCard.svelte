@@ -22,8 +22,8 @@
   <div class="retro-animation">
     <img
       src={isPlayerMonster
-        ? (monster as PlayerMonster).monster_type?.image_url || '/monsters/placeholder.png'
-        : (monster as MonsterType).image_url || '/monsters/placeholder.png'}
+        ? (monster as PlayerMonster).monster_type?.image_url || '/monsters/placeholder.svg'
+        : (monster as MonsterType).image_url || '/monsters/placeholder.svg'}
       alt={isPlayerMonster
         ? (monster as PlayerMonster).nickname
         : (monster as MonsterType).name}
