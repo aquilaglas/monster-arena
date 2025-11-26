@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-light;
+    font-family: 'Press Start 2P', cursive;
+    image-rendering: pixelated;
+  }
+}
+
+@layer components {
+  .pixel-button {
+    @apply px-4 py-2 bg-primary text-white border-4 border-black shadow-lg;
+    @apply hover:bg-opacity-80 active:translate-y-1;
+    @apply disabled:bg-gray-500 disabled:cursor-not-allowed;
+    image-rendering: pixelated;
+  }
+
+  .pixel-card {
+    @apply bg-light border-4 border-black p-4 shadow-lg;
+    image-rendering: pixelated;
+  }
+
+  .stat-bar {
+    @apply w-full h-6 bg-gray-700 border-2 border-black relative overflow-hidden;
+  }
+
+  .stat-bar-fill {
+    @apply h-full transition-all duration-300;
+  }
+
+  .pixel-text {
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+
+  .retro-animation {
+    animation: float 2s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+@keyframes attack {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(30px) scale(1.1);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.attack-animation {
+  animation: attack 0.5s ease-in-out;
+}

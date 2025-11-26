@@ -1,161 +1,256 @@
-# Installation Guide
+# 📦 Guide d'Installation - Monster Arena
 
-## System Requirements
+Ce guide vous accompagne pas à pas pour installer et configurer Monster Arena.
 
-- Node.js 18+ or 20+
-- npm 9+ or yarn 3+
-- Git
+## 📋 Table des Matières
 
-### For Desktop App Development
-- Electron dependencies (included in npm packages)
-- Python 3 (for native module compilation on some platforms)
-- Windows: Visual Studio 2019+ or Build Tools
-- macOS: Xcode Command Line Tools
-- Linux: Build essentials
+1. [Prérequis](#prérequis)
+2. [Installation Rapide](#installation-rapide)
+3. [Configuration de la Base de Données](#configuration-de-la-base-de-données)
+4. [Lancement de l'Application](#lancement-de-lapplication)
+5. [Résolution de Problèmes](#résolution-de-problèmes)
 
-## Quick Start
+## ✅ Prérequis
 
-### Browser Version
+### Logiciels Requis
 
-\`\`\`bash
-# Clone the repository
-git clone https://github.com/yourusername/monster-arena.git
+| Logiciel | Version Minimale | Vérification |
+|----------|-----------------|--------------|
+| Node.js  | 20.x           | `node --version` |
+| npm      | 10.x           | `npm --version` |
+| Git      | 2.x            | `git --version` |
+| PostgreSQL Client (psql) | 14.x | `psql --version` |
+
+### Installation des Prérequis
+
+#### Sur Ubuntu/Debian
+
+```bash
+# Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# PostgreSQL Client
+sudo apt-get install -y postgresql-client
+
+# Git
+sudo apt-get install -y git
+```
+
+#### Sur macOS
+
+```bash
+# Homebrew (si pas déjà installé)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Node.js
+brew install node@20
+
+# PostgreSQL Client
+brew install postgresql@14
+
+# Git
+brew install git
+```
+
+#### Sur Windows
+
+1. Téléchargez et installez [Node.js 20.x](https://nodejs.org/)
+2. Téléchargez et installez [Git](https://git-scm.com/download/win)
+3. Téléchargez et installez [PostgreSQL](https://www.postgresql.org/download/windows/)
+
+## 🚀 Installation Rapide
+
+### Étape 1 : Cloner le Projet
+
+```bash
+git clone https://github.com/votre-username/monster-arena.git
 cd monster-arena
+```
 
-# Install dependencies
+### Étape 2 : Installer les Dépendances
+
+```bash
 npm install
+```
 
-# Start development server
+Cette commande va installer toutes les dépendances nécessaires (environ 5 minutes).
+
+### Étape 3 : Configuration de l'Environnement
+
+Le fichier `.env` est déjà créé avec la configuration de la base de données Neon.
+
+## 🗄️ Configuration de la Base de Données
+
+### Option 1 : Script Automatique (Recommandé)
+
+```bash
+# Rendre le script exécutable
+chmod +x database/setup.sh
+
+# Exécuter le script
+./database/setup.sh
+```
+
+Le script va :
+1. ✅ Créer toutes les tables
+2. ✅ Insérer les types de monstres
+3. ✅ Créer les niveaux de l'arène
+4. ✅ Créer un joueur de test avec un monstre de départ
+
+### Option 2 : Installation Manuelle
+
+Si le script ne fonctionne pas, utilisez psql directement :
+
+```bash
+# URL de connexion
+DATABASE_URL="postgresql://neondb_owner:npg_OTuzAq1veb5x@ep-weathered-breeze-ad2zbr0i-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
+# Créer les tables
+psql "$DATABASE_URL" -f database/schema.sql
+
+# Insérer les données
+psql "$DATABASE_URL" -f database/seed.sql
+```
+
+### Vérification de l'Installation
+
+Pour vérifier que la base de données est correctement configurée :
+
+```bash
+psql "postgresql://neondb_owner:npg_OTuzAq1veb5x@ep-weathered-breeze-ad2zbr0i-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require" -c "SELECT COUNT(*) FROM monster_types;"
+```
+
+Vous devriez voir : `16` (16 types de monstres)
+
+## 🎮 Lancement de l'Application
+
+### Mode Web (Développement)
+
+```bash
 npm run dev
+```
 
-# Open http://localhost:3000 in your browser
-\`\`\`
+Ouvrez votre navigateur sur : http://localhost:5173
 
-### Desktop Version
+### Mode Electron (Application de Bureau)
 
-\`\`\`bash
-# Install dependencies
-npm install
+```bash
+npm run electron:dev
+```
 
-# Run dev server + Electron
-npm run dev:desktop
+L'application de bureau va s'ouvrir automatiquement.
 
-# The Electron app will automatically open
-\`\`\`
+### Build de Production
 
-## Build Instructions
+#### Build Web
 
-### For Production Web
-
-\`\`\`bash
-# Build optimized Next.js bundle
+```bash
 npm run build
+npm run preview
+```
 
-# Start production server
-npm start
-\`\`\`
+#### Build Electron
 
-### For Desktop Application
+```bash
+npm run electron:build
+```
 
-\`\`\`bash
-# Build for all platforms (Windows, macOS, Linux)
-npm run build:desktop
+Les fichiers seront dans le dossier `dist-electron/`.
 
-# Installers will be created in the dist/ folder
-\`\`\`
+## 🔧 Résolution de Problèmes
 
-To build for specific platforms only:
+### Problème : "psql : command not found"
 
-\`\`\`bash
-# Windows only (must run on Windows)
-npm run build:desktop -- -w
+**Solution :**
+Installez le client PostgreSQL :
 
-# macOS only (must run on macOS)
-npm run build:desktop -- -m
+```bash
+# Ubuntu/Debian
+sudo apt-get install postgresql-client
 
-# Linux only (must run on Linux)
-npm run build:desktop -- -l
-\`\`\`
+# macOS
+brew install postgresql@14
 
-## Deployment
+# Windows
+# Ajoutez le dossier bin de PostgreSQL à votre PATH
+```
 
-### Deploy to Vercel (Browser)
+### Problème : "Cannot connect to database"
 
-1. Push to GitHub
-2. Connect repository to Vercel
-3. Vercel auto-detects Next.js and deploys
+**Solution :**
+1. Vérifiez votre connexion internet
+2. Vérifiez que l'URL de la base de données est correcte dans `.env`
+3. Testez la connexion :
 
-\`\`\`bash
-vercel deploy
-\`\`\`
+```bash
+psql "postgresql://neondb_owner:npg_OTuzAq1veb5x@ep-weathered-breeze-ad2zbr0i-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require" -c "SELECT 1;"
+```
 
-### Distribute Desktop App
+### Problème : "Port 5173 already in use"
 
-1. Build the app: `npm run build:desktop`
-2. Installers are in the `dist/` folder:
-   - **Windows**: `.exe` files (NSIS installer + portable)
-   - **macOS**: `.dmg` file (disk image)
-   - **Linux**: `.AppImage` + `.deb` files
+**Solution :**
+Changez le port dans `vite.config.ts` :
 
-3. Upload to GitHub Releases or your distribution platform
-4. Users can download and install directly
+```typescript
+export default defineConfig({
+  server: {
+    port: 3000 // ou un autre port disponible
+  }
+});
+```
 
-## Troubleshooting Installation
+### Problème : npm install échoue
 
-### npm install fails
-\`\`\`bash
-# Clear npm cache
+**Solution :**
+1. Nettoyez le cache npm :
+
+```bash
 npm cache clean --force
-
-# Try again
+rm -rf node_modules package-lock.json
 npm install
-\`\`\`
+```
 
-### Port 3000 already in use
-\`\`\`bash
-# Use a different port
-PORT=3001 npm run dev
-\`\`\`
+2. Ou utilisez pnpm à la place :
 
-### Electron window doesn't appear
-1. Check DevTools (F12) for errors
-2. Ensure Node.js version is compatible
-3. Reinstall Electron: `npm install --force electron`
+```bash
+npm install -g pnpm
+pnpm install
+```
 
-### Build fails
-\`\`\`bash
-# Clean all build artifacts
-rm -rf .next dist node_modules
+### Problème : Electron ne démarre pas
 
-# Reinstall and rebuild
-npm install
-npm run build:desktop
-\`\`\`
+**Solution :**
+1. Reconstruisez Electron :
 
-## Development Workflow
+```bash
+npm run build
+```
 
-1. **Make changes** to components, pages, or game logic
-2. **Dev server hot-reloads** automatically
-3. **Test in browser**: http://localhost:3000
-4. **Test in Electron** with `npm run dev:desktop`
-5. **Lint code**: `npm run lint`
-6. **Format code**: `npm run format`
-7. **Commit and push** to version control
+2. Vérifiez que le port 5173 n'est pas bloqué par un firewall
 
-## CI/CD Pipeline
+### Problème : Les images des monstres ne s'affichent pas
 
-GitHub Actions automatically:
-- Lints code on every push
-- Builds Next.js and Electron
-- Runs on Node.js 18 and 20
+**Solution :**
+C'est normal ! Les images ne sont pas incluses par défaut. Consultez `static/IMAGES_README.md` pour savoir comment ajouter vos propres images.
 
-When you tag a release (v1.0.0), it builds desktop installers for all platforms.
+## 📚 Prochaines Étapes
 
-## Performance Optimization
+Maintenant que l'installation est terminée :
 
-- Next.js automatically optimizes builds
-- Tailwind CSS is tree-shaken
-- Images are optimized
-- Code splitting for faster loads
+1. ✅ Lisez le [README.md](README.md) pour comprendre le jeu
+2. ✅ Ajoutez vos images de monstres (voir `static/IMAGES_README.md`)
+3. ✅ Commencez à jouer !
 
-For more info, see [ELECTRON_SETUP.md](./ELECTRON_SETUP.md)
+## 🆘 Besoin d'Aide ?
+
+Si vous rencontrez des problèmes non listés ici :
+
+1. Consultez les [Issues GitHub](https://github.com/votre-username/monster-arena/issues)
+2. Ouvrez une nouvelle issue avec :
+   - Votre système d'exploitation
+   - La version de Node.js (`node --version`)
+   - Le message d'erreur complet
+   - Les étapes pour reproduire le problème
+
+Bon jeu ! 🎮👾

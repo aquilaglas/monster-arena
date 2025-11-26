@@ -1,103 +1,66 @@
-name: Release Desktop App
+name: Release
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-electron:
+    name: Build Electron App
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build and package
-      run: npm run build:desktop
+      - name: Build SvelteKit
+        run: npm run build
 
-    - name: Upload Windows artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-release
-        path: dist/*.exe
-        if-no-files-found: ignore
+      - name: Build Electron app
+        run: npm run electron:build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload NSIS installer
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-installer
-        path: dist/*.nsis.exe
-        if-no-files-found: ignore
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: monster-arena-${{ matrix.os }}
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.dmg
+            dist-electron/*.AppImage
+            dist-electron/*.deb
+          retention-days: 30
 
-  build-macos:
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build and package
-      run: npm run build:desktop
-
-    - name: Upload macOS DMG
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-dmg
-        path: dist/*.dmg
-        if-no-files-found: ignore
-
-    - name: Upload macOS ZIP
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-zip
-        path: dist/*.zip
-        if-no-files-found: ignore
-
-  build-linux:
+  create-release:
+    name: Create GitHub Release
+    needs: build-electron
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build and package
-      run: npm run build:desktop
-
-    - name: Upload Linux AppImage
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-appimage
-        path: dist/*.AppImage
-        if-no-files-found: ignore
-
-    - name: Upload Linux DEB
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-deb
-        path: dist/*.deb
-        if-no-files-found: ignore
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            monster-arena-*/*
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

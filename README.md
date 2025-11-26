@@ -1,155 +1,359 @@
-# Arène des Monstres (Monster Arena)
+# 🎮 Monster Arena
 
-A French-language monster battle game built with Next.js, React, TypeScript, and Electron.
+Un jeu d'arène de monstres de style rétro développé avec SvelteKit 5 et Electron. Entraînez vos monstres, combattez dans l'arène et devenez le champion ultime !
 
-## Features
+![Monster Arena](https://img.shields.io/badge/Version-1.0.0-blue)
+![SvelteKit](https://img.shields.io/badge/SvelteKit-5.0-orange)
+![Electron](https://img.shields.io/badge/Electron-28.2-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-- **Monster Collection**: Collect and train various monsters with unique stats
-- **Arena Combat**: Battle monsters in a tiered progression system
-- **Training System**: Improve monster stats through training (costs money)
-- **Shop System**: Purchase new monsters with earned money
-- **Progressive Difficulty**: Climb through 5 tiers with boss fights every 5th battle
-- **Desktop & Browser**: Play in your browser or as a desktop app via Electron
+## ✨ Fonctionnalités
 
-## Tech Stack
+### 🏟️ Système d'Arène Progressive
+- **50 niveaux de combat** avec difficulté croissante
+- **Boss tous les 5 niveaux** pour des défis épiques
+- **Récompenses en argent** proportionnelles au niveau
+- Visualisation des prochains adversaires
 
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **Styling**: TailwindCSS v4
-- **Desktop**: Electron
-- **Code Quality**: ESLint, Prettier
-- **CI/CD**: GitHub Actions
+### 👾 Collection de Monstres
+- **16 types de monstres différents** (12 normaux + 4 boss)
+- Chaque monstre a des statistiques uniques (PV, Attaque, Défense, Vitesse)
+- **Système de niveaux** pour vos monstres
+- Images au style pixel art rétro
 
-## Installation
+### ⚔️ Système de Combat
+- Combats au tour par tour style Pokémon
+- Calcul intelligent des dégâts basé sur Attaque vs Défense
+- Initiative basée sur la Vitesse
+- Journal de combat détaillé
+- Animations rétro
 
-### Browser (Development)
+### 💪 Entraînement
+- Améliorez les statistiques de vos monstres
+- 4 types d'entraînement disponibles :
+  - 💚 **Points de Vie** (+10 PV pour 100€)
+  - ⚔️ **Attaque** (+5 ATT pour 150€)
+  - 🛡️ **Défense** (+5 DEF pour 150€)
+  - ⚡ **Vitesse** (+3 VIT pour 120€)
 
-\`\`\`bash
-# Clone repository
-git clone <repository-url>
+### 🛒 Boutique
+- Achetez de nouveaux monstres avec l'argent gagné
+- 12 monstres disponibles de 500€ à 3500€
+- Prévisualisation des statistiques avant achat
+
+### 💰 Système Économique
+- Gagnez de l'argent en combattant
+- Dépensez de l'argent pour entraîner vos monstres
+- Achetez de nouveaux monstres dans la boutique
+
+## 🚀 Installation et Configuration
+
+### Prérequis
+
+- **Node.js** 20.x ou supérieur
+- **npm** ou **pnpm**
+- **PostgreSQL** (via Neon Database)
+- **Git**
+
+### 1. Cloner le Projet
+
+```bash
+git clone https://github.com/votre-username/monster-arena.git
 cd monster-arena
+```
 
-# Install dependencies
+### 2. Installer les Dépendances
+
+```bash
 npm install
+# ou
+pnpm install
+```
 
-# Run development server
+### 3. Configuration de la Base de Données
+
+#### 3.1 Vérifier la connexion
+
+La base de données Neon est déjà configurée dans le fichier `.env.example`. Copiez-le :
+
+```bash
+cp .env.example .env
+```
+
+#### 3.2 Créer les tables et insérer les données
+
+```bash
+# Rendre le script exécutable
+chmod +x database/setup.sh
+
+# Exécuter le script
+./database/setup.sh
+```
+
+Ou manuellement avec psql :
+
+```bash
+# Créer le schéma
+psql "postgresql://neondb_owner:npg_OTuzAq1veb5x@ep-weathered-breeze-ad2zbr0i-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require" -f database/schema.sql
+
+# Insérer les données
+psql "postgresql://neondb_owner:npg_OTuzAq1veb5x@ep-weathered-breeze-ad2zbr0i-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require" -f database/seed.sql
+```
+
+### 4. Lancer l'Application
+
+#### Mode Développement Web
+
+```bash
 npm run dev
+```
 
-# Open http://localhost:3000 in your browser
-\`\`\`
+L'application sera accessible sur http://localhost:5173
 
-### Desktop (Development)
+#### Mode Développement Electron
 
-\`\`\`bash
-# Install dependencies
-npm install
+```bash
+npm run electron:dev
+```
 
-# Run with Electron (starts Next.js dev server + Electron)
-npm run dev:desktop
-\`\`\`
+Cela lance à la fois le serveur de développement et l'application Electron.
 
-### Desktop (Production)
+### 5. Build Production
 
-\`\`\`bash
-# Build Next.js
+#### Build Web
+
+```bash
 npm run build
+npm run preview
+```
 
-# Package as desktop app (creates distributable in dist/)
-npm run build:desktop
-\`\`\`
+#### Build Electron
 
-## Project Structure
+```bash
+npm run electron:build
+```
 
-\`\`\`
+Les fichiers de distribution seront générés dans le dossier `dist-electron/`.
+
+## 🏗️ Structure du Projet
+
+```
 monster-arena/
-├── app/
-│   ├── layout.tsx
-│   ├── globals.css
-│   ├── page.tsx (Main Menu)
-│   ├── game/
-│   │   └── page.tsx (Combat Arena)
-│   ├── monsters/
-│   │   └── page.tsx (Monster List)
-│   ├── shop/
-│   │   └── page.tsx (Buy Monsters)
-│   └── api/
-│       ├── combat/
-│       ├── training/
-│       ├── monsters/
-│       └── player/
-├── components/
-│   ├── ui/
-│   ├── combat/
-│   ├── monster/
-│   └── shop/
-├── hooks/
-├── lib/
-├── types/
-├── public/
-│   └── images/ (Monster images)
-├── electron/
-│   ├── main.ts (Electron main process)
-│   ├── preload.ts
-│   └── builds/ (Built apps)
 ├── .github/
 │   └── workflows/
-│       └── ci.yml (GitHub Actions)
-├── public/
-├── next.config.mjs
-├── tsconfig.json
-└── package.json
-\`\`\`
+│       ├── ci.yml              # CI/CD pour tests et build
+│       └── release.yml         # Création des releases
+├── database/
+│   ├── schema.sql              # Schéma de la base de données
+│   ├── seed.sql                # Données initiales
+│   └── setup.sh                # Script d'installation
+├── electron/
+│   ├── main.cjs                # Process principal Electron
+│   └── preload.cjs             # Script de préchargement
+├── src/
+│   ├── lib/
+│   │   ├── components/         # Composants Svelte réutilisables
+│   │   │   ├── Button.svelte
+│   │   │   ├── Card.svelte
+│   │   │   ├── Header.svelte
+│   │   │   ├── MonsterCard.svelte
+│   │   │   └── StatBar.svelte
+│   │   ├── game/               # Logique du jeu
+│   │   │   ├── arena.ts        # Gestion de l'arène
+│   │   │   ├── combat.ts       # Système de combat
+│   │   │   ├── player.ts       # Gestion du joueur
+│   │   │   ├── shop.ts         # Logique de la boutique
+│   │   │   └── training.ts     # Système d'entraînement
+│   │   ├── stores/             # Stores Svelte 5
+│   │   │   └── game.svelte.ts  # État global du jeu
+│   │   ├── db.ts               # Connexion PostgreSQL
+│   │   └── types.ts            # Types TypeScript
+│   ├── routes/
+│   │   ├── api/                # Routes API
+│   │   │   ├── arena/
+│   │   │   ├── combat/
+│   │   │   ├── monsters/
+│   │   │   ├── player/
+│   │   │   ├── shop/
+│   │   │   └── training/
+│   │   ├── arena/              # Page de l'arène
+│   │   ├── monsters/           # Gestion des monstres
+│   │   ├── shop/               # Boutique
+│   │   ├── training/           # Entraînement
+│   │   ├── +layout.svelte      # Layout principal
+│   │   └── +page.svelte        # Menu principal
+│   ├── app.css                 # Styles globaux
+│   └── app.html                # Template HTML
+├── static/
+│   ├── monsters/               # Images des monstres
+│   │   └── IMAGES_README.md    # Guide pour créer les images
+│   └── favicon.png
+├── .eslintrc.json              # Configuration ESLint
+├── .prettierrc                 # Configuration Prettier
+├── package.json
+├── svelte.config.js            # Configuration SvelteKit
+├── tailwind.config.js          # Configuration TailwindCSS
+├── tsconfig.json               # Configuration TypeScript
+└── vite.config.ts              # Configuration Vite
+```
 
-## Game Mechanics
+## 🎨 Ajouter des Images de Monstres
 
-### Money System
+Les images de monstres ne sont pas incluses par défaut. Vous pouvez :
 
-- **Earn**: 10 coins per battle win, 50 coins for boss battles
-- **Spend**: 20 coins per training session, 100-300 coins to buy monsters
+### Option 1 : Créer vos propres sprites
 
-### Training System
+Utilisez des outils comme :
+- [Piskel](https://www.piskelapp.com/) - Éditeur en ligne gratuit
+- [Pixilart](https://www.pixilart.com/) - Outil de pixel art
+- [Aseprite](https://www.aseprite.org/) - Logiciel professionnel
 
-- Increases monster stats: Attack, Defense, Speed, HP
-- Training duration: 5-30 seconds
-- Cost: 20 coins per session
+Format recommandé : PNG 128x128 ou 256x256 pixels
 
-### Arena System
+### Option 2 : Télécharger des sprites gratuits
 
-- **Tier 1-5**: Progressive difficulty levels
-- **Boss Battles**: Every 5th fight (fights 5, 10, 15, 20, 25)
-- **Rewards**: Higher tiers = more money per win
+- [OpenGameArt.org](https://opengameart.org/)
+- [Itch.io](https://itch.io/game-assets/free)
+- [Kenney.nl](https://kenney.nl/)
 
-### Combat
+### Liste des images à créer :
 
-- Turn-based battle system
-- Monster stats determine attack damage and defense
-- Speed determines turn order
-- Battle continues until one monster is defeated
+Placez les fichiers PNG dans `static/monsters/` :
 
-## French Localization
+**Monstres de base :**
+- `flammy.png`, `aqualis.png`, `terros.png`, `voltix.png`
 
-All UI text, labels, and messages are in French:
-- Menus: "Arène des Monstres", "Mes Monstres", "Boutique"
-- Actions: "Attaquer", "Fuir", "Entraîner"
-- Stats: "Attaque", "Défense", "Vitesse", "PV"
+**Monstres intermédiaires :**
+- `infernus.png`, `glacior.png`, `zephyr.png`, `titanor.png`
 
-## Development Scripts
+**Monstres avancés :**
+- `shadowclaw.png`, `luminos.png`, `venomfang.png`, `crystallia.png`
 
-\`\`\`bash
-npm run dev          # Start Next.js dev server
-npm run dev:desktop  # Start Next.js + Electron
-npm run build        # Build for production
-npm run build:desktop # Package Electron app
-npm run lint         # Run ESLint
-npm run format       # Format with Prettier
-\`\`\`
+**Boss :**
+- `boss_pyrothor.png`, `boss_leviathan.png`, `boss_stormlord.png`, `boss_chronos.png`
 
-## GitHub Actions CI/CD
+Voir `static/IMAGES_README.md` pour plus de détails.
 
-Automatically runs on every push:
-- ESLint checks
-- Next.js build verification
-- Tests (configured in CI workflow)
+## 🧪 Tests et Qualité du Code
 
-## License
+### Linter
 
-MIT
+```bash
+npm run lint
+```
+
+### Formattage
+
+```bash
+npm run format
+```
+
+### Vérification des types
+
+```bash
+npm run check
+```
+
+### Tests
+
+```bash
+npm run test
+```
+
+## 🔧 Technologies Utilisées
+
+### Frontend
+- **SvelteKit 5** - Framework web moderne avec Svelte 5
+- **TailwindCSS** - Framework CSS utilitaire
+- **TypeScript** - Typage statique
+- **Vite** - Build tool ultra-rapide
+
+### Backend
+- **PostgreSQL** (Neon) - Base de données
+- **postgres.js** - Client PostgreSQL
+
+### Desktop
+- **Electron 28** - Framework pour applications de bureau
+
+### DevOps
+- **ESLint** - Linting JavaScript/TypeScript
+- **Prettier** - Formattage du code
+- **GitHub Actions** - CI/CD
+- **Vitest** - Framework de test
+
+## 📦 Base de Données
+
+### Schéma
+
+Le jeu utilise 7 tables principales :
+- `players` - Informations des joueurs
+- `monster_types` - Types de monstres (templates)
+- `player_monsters` - Monstres possédés par les joueurs
+- `arena_opponents` - Configuration des adversaires de l'arène
+- `combat_history` - Historique des combats
+- `training_history` - Historique des entraînements
+
+### Hébergement
+
+La base de données est hébergée sur **Neon** (PostgreSQL serverless).
+
+## 🎮 Comment Jouer
+
+1. **Démarrer** : Vous commencez avec un Flammy niveau 5 et 1000€
+2. **Combattre** : Allez dans l'arène pour combattre des adversaires
+3. **Gagner de l'argent** : Chaque victoire rapporte de l'argent
+4. **Entraîner** : Améliorez les stats de vos monstres
+5. **Acheter** : Achetez de nouveaux monstres dans la boutique
+6. **Progresser** : Battez les 50 niveaux de l'arène !
+
+### Conseils Stratégiques
+
+- 💡 **Entraînez régulièrement** : Un monstre bien entraîné est plus fort
+- 💡 **Équilibrez vos stats** : Ne négligez pas la défense et la vitesse
+- 💡 **Boss = gros gains** : Les boss rapportent 3x plus d'argent
+- 💡 **Diversifiez** : Achetez plusieurs monstres pour différentes stratégies
+- 💡 **La vitesse décide** : Le monstre le plus rapide attaque en premier
+
+## 🚢 Déploiement
+
+### Application Web
+
+L'application peut être déployée sur :
+- **Vercel** (recommandé pour SvelteKit)
+- **Netlify**
+- **Cloudflare Pages**
+
+### Application Desktop
+
+Utilisez le workflow GitHub Actions `release.yml` pour générer automatiquement des builds pour :
+- Windows (exe, portable)
+- macOS (dmg)
+- Linux (AppImage, deb)
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à :
+
+1. Fork le projet
+2. Créer une branche (`git checkout -b feature/amazing-feature`)
+3. Commit vos changements (`git commit -m 'Add amazing feature'`)
+4. Push vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrir une Pull Request
+
+## 📝 License
+
+Ce projet est sous licence MIT.
+
+## 🙏 Remerciements
+
+- Police rétro : [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P)
+- Inspiration : Pokémon, Monster Rancher
+- Base de données : [Neon](https://neon.tech/)
+
+## 📧 Contact
+
+Pour toute question ou suggestion, ouvrez une issue sur GitHub !
+
+---
+
+**Bon jeu ! 🎮👾**
