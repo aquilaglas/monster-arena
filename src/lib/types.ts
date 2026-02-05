@@ -7,6 +7,22 @@ export interface Player {
   updated_at?: Date;
 }
 
+export type ElementType =
+  | 'normal'
+  | 'fire'
+  | 'water'
+  | 'earth'
+  | 'electric'
+  | 'ice'
+  | 'wind'
+  | 'dark'
+  | 'light'
+  | 'poison'
+  | 'crystal'
+  | 'time';
+
+export type CombatMove = 'rock' | 'paper' | 'scissors';
+
 export interface MonsterType {
   id: number;
   name: string;
@@ -18,6 +34,7 @@ export interface MonsterType {
   price: number;
   image_url: string;
   is_boss: boolean;
+  element_type: ElementType;
 }
 
 export interface PlayerMonster {
@@ -36,6 +53,8 @@ export interface PlayerMonster {
   is_active: boolean;
   is_training: boolean;
   training_end_time: Date | null;
+  training_stat: string | null;
+  training_improvement: number | null;
   monster_type?: MonsterType;
 }
 
@@ -47,6 +66,7 @@ export interface ArenaOpponent {
   reward_money: number;
   is_boss: boolean;
   monster_type?: MonsterType;
+  monster_type_name?: string;
 }
 
 export interface CombatLog {

@@ -1,12 +1,4 @@
 import { sql } from '$lib/db';
-import type { TrainingStat } from '$lib/types';
-
-export const TRAINING_OPTIONS: TrainingStat[] = [
-  { name: 'hp', cost: 100, improvement: 10, label: 'Points de Vie' },
-  { name: 'attack', cost: 150, improvement: 5, label: 'Attaque' },
-  { name: 'defense', cost: 150, improvement: 5, label: 'Défense' },
-  { name: 'speed', cost: 120, improvement: 3, label: 'Vitesse' },
-];
 
 export async function trainMonster(
   playerId: number,
@@ -54,7 +46,9 @@ export async function trainMonster(
       await sql`
         UPDATE player_monsters
         SET is_training = TRUE,
-            training_end_time = ${endTime.toISOString()},
+            training_end_time = ${endTime},
+            training_stat = ${stat},
+            training_improvement = ${improvement},
             updated_at = NOW()
         WHERE id = ${monsterId}
       `;
@@ -73,11 +67,11 @@ export async function trainMonster(
   }
 }
 
-export async function completeTraining(monsterId: number, stat: string, improvement: number): Promise<boolean> {
+export async function completeTraining(monsterId: number): Promise<boolean> {
   try {
     await sql.begin(async (sql) => {
       const [monster] = await sql`
-        SELECT is_training, training_end_time
+        SELECT is_training, training_end_time, training_stat, training_improvement
         FROM player_monsters
         WHERE id = ${monsterId}
       `;
@@ -94,6 +88,9 @@ export async function completeTraining(monsterId: number, stat: string, improvem
         throw new Error('L\'entraînement n\'est pas encore terminé');
       }
 
+      const stat = monster.training_stat;
+      const improvement = monster.training_improvement;
+
       // Appliquer l'amélioration
       if (stat === 'hp') {
         await sql`
@@ -103,6 +100,8 @@ export async function completeTraining(monsterId: number, stat: string, improvem
               training_count = training_count + 1,
               is_training = FALSE,
               training_end_time = NULL,
+              training_stat = NULL,
+              training_improvement = NULL,
               updated_at = NOW()
           WHERE id = ${monsterId}
         `;
@@ -113,6 +112,8 @@ export async function completeTraining(monsterId: number, stat: string, improvem
               training_count = training_count + 1,
               is_training = FALSE,
               training_end_time = NULL,
+              training_stat = NULL,
+              training_improvement = NULL,
               updated_at = NOW()
           WHERE id = ${monsterId}
         `;
@@ -130,29 +131,15 @@ export async function checkAndCompleteTrainings(): Promise<void> {
   try {
     // Récupérer tous les monstres dont l'entraînement est terminé
     const monsters = await sql`
-      SELECT id, monster_type_id
+      SELECT id
       FROM player_monsters
       WHERE is_training = TRUE
       AND training_end_time <= NOW()
     `;
 
-    // Pour chaque monstre, récupérer le dernier entraînement et l'appliquer
+    // Pour chaque monstre, appliquer l'amélioration
     for (const monster of monsters) {
-      const [lastTraining] = await sql`
-        SELECT stat_improved, improvement_value
-        FROM training_history
-        WHERE monster_id = ${monster.id}
-        ORDER BY training_date DESC
-        LIMIT 1
-      `;
-
-      if (lastTraining) {
-        await completeTraining(
-          monster.id,
-          lastTraining.stat_improved,
-          lastTraining.improvement_value
-        );
-      }
+      await completeTraining(monster.id);
     }
   } catch (error) {
     console.error('Check training error:', error);

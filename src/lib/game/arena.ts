@@ -2,7 +2,7 @@ import { sql } from '$lib/db';
 import type { ArenaOpponent } from '$lib/types';
 
 export async function getArenaOpponent(level: number): Promise<ArenaOpponent | null> {
-  const [result] = await sql`
+  const [result] = await sql<ArenaOpponent[]>`
     SELECT
       ao.id,
       ao.level,

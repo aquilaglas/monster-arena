@@ -1,18 +1,22 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
   import StatBar from '$lib/components/StatBar.svelte';
   import { gameState, updateMoney } from '$lib/stores/game.svelte';
   import { initializeCombat, executeTurn } from '$lib/game/combat.client';
-  import type { ArenaOpponent, CombatState } from '$lib/types';
+  import type { ArenaOpponent, CombatState, CombatMove } from '$lib/types';
 
   let opponent = $state<ArenaOpponent | null>(null);
   let nextOpponents = $state<ArenaOpponent[]>([]);
   let combatState = $state<CombatState | null>(null);
   let isLoading = $state(true);
+  let selectedLevel = $state<number>(1);
+  let isReplay = $state(false);
 
   onMount(async () => {
+    selectedLevel = gameState.player?.current_arena_level || 1;
     await loadOpponent();
     await loadNextOpponents();
     isLoading = false;
@@ -20,10 +24,12 @@
 
   async function loadOpponent() {
     const res = await fetch(
-      `/api/arena/opponent?level=${gameState.player?.current_arena_level || 1}`
+      `/api/arena/opponent?level=${selectedLevel}`
     );
     const data = await res.json();
     opponent = data.opponent;
+    // C'est un replay si le niveau sélectionné est inférieur au niveau actuel
+    isReplay = selectedLevel < (gameState.player?.current_arena_level || 1);
   }
 
   async function loadNextOpponents() {
@@ -32,6 +38,11 @@
     );
     const data = await res.json();
     nextOpponents = data.opponents;
+  }
+
+  async function changeLevel(newLevel: number) {
+    selectedLevel = newLevel;
+    await loadOpponent();
   }
 
   function startCombat() {
@@ -46,16 +57,19 @@
     combatState = initializeCombat(gameState.activeMonster, opponent);
   }
 
-  function attack() {
-    if (!combatState || combatState.isFinished) return;
-    combatState = executeTurn(combatState, 'attack');
+  function attack(move: CombatMove) {
+    if (!combatState || combatState.isFinished || combatState.turn !== 'player') return;
+
+    combatState = executeTurn(combatState, move);
 
     if (!combatState.isFinished && combatState.turn === 'opponent') {
       setTimeout(() => {
         if (combatState) {
-          combatState = executeTurn(combatState, 'attack');
+          // L'adversaire attaque automatiquement avec un choix aléatoire
+          const opponentMove: CombatMove = ['rock', 'paper', 'scissors'][Math.floor(Math.random() * 3)] as CombatMove;
+          combatState = executeTurn(combatState, opponentMove);
         }
-      }, 1000);
+      }, 1500);
     }
   }
 
@@ -63,7 +77,9 @@
     if (!combatState || !opponent) return;
 
     const won = combatState.winner === 'player';
-    const moneyEarned = won ? opponent.reward_money : 0;
+    // Si c'est un replay, récompense à 50%
+    const rewardMultiplier = isReplay ? 0.5 : 1;
+    const moneyEarned = won ? Math.floor(opponent.reward_money * rewardMultiplier) : 0;
     const experienceGained = won ? opponent.monster_level * 50 : 0;
 
     await fetch('/api/combat/result', {
@@ -76,12 +92,14 @@
         won,
         moneyEarned,
         experienceGained,
+        isReplay,
       }),
     });
 
     if (won) {
       updateMoney(moneyEarned);
-      if (gameState.player) {
+      // Ne faire progresser le niveau d'arène que si ce n'est pas un replay
+      if (gameState.player && !isReplay) {
         gameState.player.current_arena_level = opponent.level + 1;
       }
     }
@@ -98,7 +116,7 @@
 
 <div class="max-w-6xl mx-auto">
   <div class="mb-4">
-    <Button onclick={() => (window.location.href = '/')} variant="secondary">← Retour</Button>
+    <Button onclick={() => goto('/')} variant="secondary">← Retour</Button>
   </div>
 
   {#if isLoading}
@@ -107,7 +125,7 @@
     <Card title="Aucun monstre actif">
       <p class="pixel-text">Vous devez sélectionner un monstre actif pour combattre.</p>
       <div class="mt-4">
-        <Button onclick={() => (window.location.href = '/monsters')}>Mes Monstres</Button>
+        <Button onclick={() => goto('/monsters')}>Mes Monstres</Button>
       </div>
     </Card>
   {:else if combatState}
@@ -165,12 +183,78 @@
           {combatState.winner === 'player' ? '🎉 Continuer' : '😢 Réessayer'}
         </Button>
       {:else}
-        <Button onclick={attack} disabled={combatState.turn === 'opponent'}>⚔️ Attaquer</Button>
+        <div class="space-y-2">
+          <p class="pixel-text text-xs text-white mb-2">
+            {combatState.turn === 'player' ? 'Choisissez votre attaque !' : 'L\'adversaire réfléchit...'}
+          </p>
+          <div class="grid grid-cols-3 gap-4">
+            <Button
+              onclick={() => attack('rock')}
+              disabled={combatState.turn === 'opponent'}
+            >
+              🪨<br/>Pierre
+            </Button>
+            <Button
+              onclick={() => attack('paper')}
+              disabled={combatState.turn === 'opponent'}
+              variant="secondary"
+            >
+              📄<br/>Feuille
+            </Button>
+            <Button
+              onclick={() => attack('scissors')}
+              disabled={combatState.turn === 'opponent'}
+              variant="danger"
+            >
+              ✂️<br/>Ciseaux
+            </Button>
+          </div>
+        </div>
       {/if}
     </Card>
   {:else if opponent}
+    <!-- Sélecteur de niveau d'arène -->
+    <div class="mb-6">
+      <Card title="Sélection du niveau">
+        <div class="flex items-center gap-2 mb-2">
+          <Button
+            onclick={() => changeLevel(Math.max(1, selectedLevel - 1))}
+            disabled={selectedLevel <= 1}
+            variant="secondary"
+          >
+            ◀
+          </Button>
+          <div class="flex-1 text-center">
+            <p class="pixel-text text-lg font-bold">
+              Niveau {selectedLevel}
+              {#if isReplay}
+                <span class="text-yellow-600">⟲ REPLAY</span>
+              {/if}
+            </p>
+            <p class="pixel-text text-xs text-gray-600">
+              Niveau actuel: {gameState.player?.current_arena_level || 1}
+            </p>
+          </div>
+          <Button
+            onclick={() => changeLevel(Math.min(gameState.player?.current_arena_level || 1, selectedLevel + 1))}
+            disabled={selectedLevel >= (gameState.player?.current_arena_level || 1)}
+            variant="secondary"
+          >
+            ▶
+          </Button>
+        </div>
+        {#if isReplay}
+          <div class="p-2 bg-yellow-100 border-2 border-yellow-600">
+            <p class="pixel-text text-xs text-yellow-800">
+              💰 Récompense réduite à 50% pour les niveaux déjà battus
+            </p>
+          </div>
+        {/if}
+      </Card>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <Card title="Prochain adversaire">
+      <Card title={isReplay ? 'Adversaire (Replay)' : 'Prochain adversaire'}>
         <div class="retro-animation">
           <img
             src={opponent.monster_type?.image_url || '/monsters/placeholder.png'}
@@ -185,7 +269,15 @@
           {/if}
         </h3>
         <p class="pixel-text text-sm mb-4">Niveau {opponent.monster_level}</p>
-        <p class="pixel-text text-sm mb-4">Récompense: {opponent.reward_money}€</p>
+        <p class="pixel-text text-sm mb-4">
+          Récompense:
+          {#if isReplay}
+            <span class="text-yellow-600">{Math.floor(opponent.reward_money * 0.5)}€ (50%)</span>
+            <span class="text-gray-400 line-through text-xs">{opponent.reward_money}€</span>
+          {:else}
+            {opponent.reward_money}€
+          {/if}
+        </p>
 
         {#if gameState.activeMonster?.is_training}
           <div class="mb-4 p-3 bg-red-100 border-4 border-red-500">

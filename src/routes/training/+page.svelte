@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
-  import MonsterCard from '$lib/components/MonsterCard.svelte';
   import { gameState, updateMoney, setActiveMonster } from '$lib/stores/game.svelte';
   import {
     TRAINING_OPTIONS,
@@ -15,18 +15,14 @@
 
   let isLoading = $state(true);
   let message = $state('');
-  let remainingTime = $state(0);
+  let allMonsters = $state<PlayerMonster[]>([]);
+  let remainingTimes = $state<Map<number, number>>(new Map());
   let intervalId: number | null = null;
 
   onMount(async () => {
-    // Vérifier si des entraînements sont terminés
-    await checkCompletedTrainings();
+    await loadAllMonsters();
     isLoading = false;
-
-    // Démarrer le timer si le monstre est en entraînement
-    if (gameState.activeMonster?.is_training) {
-      startTimer();
-    }
+    startTimer();
   });
 
   onDestroy(() => {
@@ -35,50 +31,44 @@
     }
   });
 
+  async function loadAllMonsters() {
+    const res = await fetch('/api/monsters');
+    const data = await res.json();
+    allMonsters = data.monsters;
+  }
+
   function startTimer() {
     if (intervalId) {
       clearInterval(intervalId);
     }
 
-    updateRemainingTime();
+    updateAllRemainingTimes();
 
     intervalId = setInterval(() => {
-      updateRemainingTime();
-
-      if (remainingTime <= 0) {
-        clearInterval(intervalId!);
-        intervalId = null;
-        // Recharger le monstre
-        refreshMonster();
-      }
+      updateAllRemainingTimes();
     }, 1000) as unknown as number;
   }
 
-  function updateRemainingTime() {
-    if (gameState.activeMonster?.is_training && gameState.activeMonster.training_end_time) {
-      remainingTime = getRemainingTrainingTime(gameState.activeMonster.training_end_time);
-    } else {
-      remainingTime = 0;
+  function updateAllRemainingTimes() {
+    const newTimes = new Map<number, number>();
+
+    for (const monster of allMonsters) {
+      if (monster.is_training && monster.training_end_time) {
+        const remaining = getRemainingTrainingTime(monster.training_end_time);
+        newTimes.set(monster.id, remaining);
+
+        if (remaining <= 0 && remainingTimes.get(monster.id)! > 0) {
+          // L'entraînement vient de se terminer
+          loadAllMonsters();
+        }
+      }
     }
+
+    remainingTimes = newTimes;
   }
 
-  async function checkCompletedTrainings() {
-    await fetch('/api/training');
-    await refreshMonster();
-  }
-
-  async function refreshMonster() {
-    const monsterRes = await fetch('/api/player/active-monster');
-    const monsterData = await monsterRes.json();
-    setActiveMonster(monsterData.monster);
-
-    if (monsterData.monster?.is_training) {
-      startTimer();
-    }
-  }
-
-  async function train(stat: string, cost: number, improvement: number) {
-    if (!gameState.activeMonster || !gameState.player) return;
+  async function train(monster: PlayerMonster, stat: string, cost: number, improvement: number) {
+    if (!gameState.player) return;
 
     if (gameState.player.money < cost) {
       message = "Pas assez d'argent !";
@@ -86,8 +76,8 @@
       return;
     }
 
-    if (gameState.activeMonster.is_training) {
-      message = 'Le monstre est déjà en entraînement !';
+    if (monster.is_training) {
+      message = 'Ce monstre est déjà en entraînement !';
       setTimeout(() => (message = ''), 3000);
       return;
     }
@@ -98,7 +88,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        monsterId: gameState.activeMonster.id,
+        monsterId: monster.id,
         stat,
         cost,
         improvement,
@@ -109,11 +99,17 @@
     if (res.ok) {
       updateMoney(-cost);
 
-      message = `Entraînement commencé ! Durée: ${formatTrainingDuration(improvement)}`;
+      message = `Entraînement de ${monster.nickname} commencé ! Durée: ${formatTrainingDuration(improvement)}`;
       setTimeout(() => (message = ''), 3000);
 
-      // Recharger le monstre
-      await refreshMonster();
+      await loadAllMonsters();
+
+      // Rafraîchir le monstre actif si c'est lui qui s'entraîne
+      if (monster.is_active) {
+        const monsterRes = await fetch('/api/player/active-monster');
+        const monsterData = await monsterRes.json();
+        setActiveMonster(monsterData.monster);
+      }
     } else {
       const error = await res.json();
       message = error.error || "Échec de l'entraînement";
@@ -121,26 +117,30 @@
     }
   }
 
-  async function claimTraining() {
-    if (!gameState.activeMonster) return;
-
-    // Trouver le dernier entraînement
-    const lastOption = TRAINING_OPTIONS[0]; // On pourrait stocker ça dans la DB
-
+  async function claimTraining(monster: PlayerMonster) {
     const res = await fetch('/api/training', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        monsterId: gameState.activeMonster.id,
-        stat: 'hp', // À remplacer par la vraie stat
-        improvement: lastOption.improvement,
+        monsterId: monster.id,
       }),
     });
 
     if (res.ok) {
-      message = 'Entraînement terminé avec succès !';
+      message = `Entraînement de ${monster.nickname} terminé avec succès !`;
       setTimeout(() => (message = ''), 3000);
-      await refreshMonster();
+      await loadAllMonsters();
+
+      // Rafraîchir le monstre actif si c'est lui
+      if (monster.is_active) {
+        const monsterRes = await fetch('/api/player/active-monster');
+        const monsterData = await monsterRes.json();
+        setActiveMonster(monsterData.monster);
+      }
+    } else {
+      const error = await res.json();
+      message = error.error || 'Erreur lors de la récupération';
+      setTimeout(() => (message = ''), 3000);
     }
   }
 </script>
@@ -149,9 +149,9 @@
   <title>Monster Arena - Entraînement</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-6xl mx-auto">
   <div class="mb-4">
-    <Button onclick={() => (window.location.href = '/')} variant="secondary">← Retour</Button>
+    <Button onclick={() => (goto('/'))} variant="secondary">← Retour</Button>
   </div>
 
   {#if message}
@@ -160,77 +160,89 @@
     </div>
   {/if}
 
-  {#if !gameState.activeMonster}
-    <Card title="Aucun monstre actif">
-      <p class="pixel-text">Vous devez sélectionner un monstre actif pour l'entraîner.</p>
-      <div class="mt-4">
-        <Button onclick={() => (window.location.href = '/monsters')}>Mes Monstres</Button>
-      </div>
-    </Card>
-  {:else}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div>
-        <Card title="Monstre actif">
-          <MonsterCard monster={gameState.activeMonster} />
+  <Card title="Centre d'Entraînement">
+    <p class="pixel-text text-sm mb-6">
+      Sélectionnez un monstre et une statistique à améliorer. La durée dépend de l'amélioration (1
+      min/point).
+    </p>
 
-          <div class="mt-4 p-2 bg-secondary border-2 border-black">
-            <p class="pixel-text text-xs text-dark">
-              Entraînements effectués: {gameState.activeMonster.training_count}
-            </p>
-          </div>
+    {#if isLoading}
+      <p class="pixel-text">Chargement...</p>
+    {:else if allMonsters.length === 0}
+      <p class="pixel-text mb-4">Vous n'avez aucun monstre.</p>
+      <Button onclick={() => (goto('/shop'))}>🛒 Boutique</Button>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#each allMonsters as monster}
+          <div class="relative">
+            {#if monster.is_active}
+              <div class="absolute -top-2 -right-2 bg-accent border-4 border-black px-2 py-1 z-10">
+                <span class="pixel-text text-xs">ACTIF</span>
+              </div>
+            {/if}
 
-          {#if gameState.activeMonster.is_training}
-            <div class="mt-4 p-4 bg-primary border-4 border-black">
-              <h3 class="pixel-text text-sm text-white mb-2">🏋️ Entraînement en cours</h3>
-              <p class="pixel-text text-xl text-accent mb-2">
-                {formatRemainingTime(remainingTime)}
+            <div class="pixel-card">
+              <div class="retro-animation">
+                <img
+                  src={monster.monster_type?.image_url || '/monsters/placeholder.svg'}
+                  alt={monster.nickname}
+                  class="w-full h-48 object-contain mb-4 bg-gray-200 border-4 border-black"
+                />
+              </div>
+
+              <h3 class="pixel-text font-bold mb-2">{monster.nickname}</h3>
+              <p class="pixel-text text-xs mb-2">Niveau {monster.level}</p>
+
+              <div class="grid grid-cols-2 gap-2 mb-4 pixel-text text-xs">
+                <div>PV: {monster.max_hp}</div>
+                <div>ATT: {monster.attack}</div>
+                <div>DEF: {monster.defense}</div>
+                <div>VIT: {monster.speed}</div>
+              </div>
+
+              <p class="pixel-text text-xs mb-3 text-gray-600">
+                Entraînements: {monster.training_count}
               </p>
-              {#if remainingTime <= 0}
-                <Button onclick={claimTraining}>✅ Récupérer</Button>
+
+              {#if monster.is_training}
+                <div class="p-3 bg-primary border-4 border-black mb-3">
+                  <h4 class="pixel-text text-xs text-white mb-1">🏋️ En entraînement</h4>
+                  <p class="pixel-text text-sm text-accent">
+                    {formatRemainingTime(remainingTimes.get(monster.id) || 0)}
+                  </p>
+                  {#if (remainingTimes.get(monster.id) || 0) <= 0}
+                    <Button onclick={() => claimTraining(monster)}>✅ Récupérer</Button>
+                  {/if}
+                </div>
+              {:else}
+                <details class="pixel-text text-xs">
+                  <summary class="cursor-pointer font-bold mb-2 hover:text-primary">
+                    Choisir un entraînement
+                  </summary>
+                  <div class="space-y-2 mt-2">
+                    {#each TRAINING_OPTIONS as option}
+                      <div class="p-2 bg-gray-100 border-2 border-black">
+                        <div class="flex justify-between mb-1">
+                          <span class="font-bold">{option.label}</span>
+                          <span class="text-green-600">{option.cost}€</span>
+                        </div>
+                        <p class="mb-1">+{option.improvement} pts</p>
+                        <p class="mb-2 text-gray-600">⏱️ {formatTrainingDuration(option.improvement)}</p>
+                        <Button
+                          onclick={() => train(monster, option.name, option.cost, option.improvement)}
+                          disabled={!gameState.player || gameState.player.money < option.cost}
+                        >
+                          Entraîner
+                        </Button>
+                      </div>
+                    {/each}
+                  </div>
+                </details>
               {/if}
             </div>
-          {/if}
-        </Card>
-      </div>
-
-      <Card title="Options d'entraînement">
-        {#if gameState.activeMonster.is_training}
-          <div class="p-4 bg-red-100 border-4 border-red-500 mb-4">
-            <p class="pixel-text text-xs text-red-800">
-              ⚠️ Le monstre est en entraînement. Attendez qu'il termine avant de commencer un
-              nouvel entraînement.
-            </p>
           </div>
-        {/if}
-
-        <p class="pixel-text text-sm mb-4">
-          Chaque entraînement améliore une statistique de votre monstre. La durée dépend de
-          l'amélioration.
-        </p>
-
-        <div class="space-y-4">
-          {#each TRAINING_OPTIONS as option}
-            <div class="p-4 bg-white border-4 border-black">
-              <div class="flex justify-between items-center mb-2">
-                <h4 class="pixel-text font-bold">{option.label}</h4>
-                <span class="pixel-text text-sm text-green-600">{option.cost}€</span>
-              </div>
-              <p class="pixel-text text-xs mb-2">+{option.improvement} points</p>
-              <p class="pixel-text text-xs mb-3 text-gray-600">
-                ⏱️ Durée: {formatTrainingDuration(option.improvement)}
-              </p>
-              <Button
-                onclick={() => train(option.name, option.cost, option.improvement)}
-                disabled={!gameState.player ||
-                  gameState.player.money < option.cost ||
-                  gameState.activeMonster?.is_training}
-              >
-                Entraîner
-              </Button>
-            </div>
-          {/each}
-        </div>
-      </Card>
-    </div>
-  {/if}
+        {/each}
+      </div>
+    {/if}
+  </Card>
 </div>

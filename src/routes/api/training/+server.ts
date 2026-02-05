@@ -19,9 +19,9 @@ export async function POST({ request }) {
 
 export async function PUT({ request }) {
   try {
-    const { monsterId, stat, improvement } = await request.json();
+    const { monsterId } = await request.json();
 
-    const success = await completeTraining(monsterId, stat, improvement);
+    const success = await completeTraining(monsterId);
 
     if (success) {
       return json({ success: true });

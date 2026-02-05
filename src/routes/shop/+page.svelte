@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
   import { gameState, updateMoney } from '$lib/stores/game.svelte';
@@ -56,7 +57,7 @@
 
 <div class="max-w-6xl mx-auto">
   <div class="mb-4">
-    <Button onclick={() => (window.location.href = '/')} variant="secondary">← Retour</Button>
+    <Button onclick={() => (goto('/'))} variant="secondary">← Retour</Button>
   </div>
 
   {#if message}

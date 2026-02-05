@@ -26,7 +26,37 @@ export async function updateArenaLevel(playerId: number, level: number): Promise
 
 export async function getActiveMonster(playerId: number): Promise<PlayerMonster | null> {
   const [monster] = await sql<PlayerMonster[]>`
-    SELECT pm.*, mt.*
+    SELECT
+      pm.id,
+      pm.player_id,
+      pm.monster_type_id,
+      pm.nickname,
+      pm.level,
+      pm.hp,
+      pm.max_hp,
+      pm.attack,
+      pm.defense,
+      pm.speed,
+      pm.experience,
+      pm.training_count,
+      pm.is_active,
+      pm.is_training,
+      pm.training_end_time,
+      pm.training_stat,
+      pm.training_improvement,
+      json_build_object(
+        'id', mt.id,
+        'name', mt.name,
+        'description', mt.description,
+        'base_hp', mt.base_hp,
+        'base_attack', mt.base_attack,
+        'base_defense', mt.base_defense,
+        'base_speed', mt.base_speed,
+        'price', mt.price,
+        'image_url', mt.image_url,
+        'is_boss', mt.is_boss,
+        'element_type', mt.element_type
+      ) as monster_type
     FROM player_monsters pm
     JOIN monster_types mt ON pm.monster_type_id = mt.id
     WHERE pm.player_id = ${playerId} AND pm.is_active = TRUE

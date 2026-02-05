@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
   import MonsterCard from '$lib/components/MonsterCard.svelte';
@@ -46,7 +47,7 @@
 
 <div class="max-w-6xl mx-auto">
   <div class="mb-4">
-    <Button onclick={() => (window.location.href = '/')} variant="secondary">← Retour</Button>
+    <Button onclick={() => (goto('/'))} variant="secondary">← Retour</Button>
   </div>
 
   {#if message}
@@ -60,7 +61,7 @@
       <p class="pixel-text">Chargement...</p>
     {:else if monsters.length === 0}
       <p class="pixel-text mb-4">Vous n'avez aucun monstre. Visitez la boutique !</p>
-      <Button onclick={() => (window.location.href = '/shop')}>🛒 Boutique</Button>
+      <Button onclick={() => (goto('/shop'))}>🛒 Boutique</Button>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {#each monsters as monster}
@@ -70,14 +71,13 @@
                 <span class="pixel-text text-xs">ACTIF</span>
               </div>
             {/if}
-            <div
-              class="cursor-pointer hover:scale-105 transition-transform {monster.is_active ? 'ring-4 ring-accent' : ''}"
+            <button
+              type="button"
+              class="cursor-pointer hover:scale-105 transition-transform text-left w-full {monster.is_active ? 'ring-4 ring-accent' : ''}"
               onclick={() => selectMonster(monster)}
-              role="button"
-              tabindex="0"
             >
               <MonsterCard {monster} />
-            </div>
+            </button>
           </div>
         {/each}
       </div>

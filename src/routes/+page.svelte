@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import Button from '$lib/components/Button.svelte';
   import Card from '$lib/components/Card.svelte';
   import { gameState } from '$lib/stores/game.svelte';
@@ -11,19 +12,19 @@
 <div class="max-w-4xl mx-auto">
   <Card title="Menu Principal">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Button onclick={() => (window.location.href = '/arena')}>
+      <Button onclick={() => goto('/arena')}>
         🏟️ ARÈNE
       </Button>
 
-      <Button onclick={() => (window.location.href = '/training')} variant="secondary">
+      <Button onclick={() => goto('/training')} variant="secondary">
         💪 ENTRAÎNEMENT
       </Button>
 
-      <Button onclick={() => (window.location.href = '/shop')} variant="secondary">
+      <Button onclick={() => goto('/shop')} variant="secondary">
         🛒 BOUTIQUE
       </Button>
 
-      <Button onclick={() => (window.location.href = '/monsters')} variant="secondary">
+      <Button onclick={() => goto('/monsters')} variant="secondary">
         👾 MES MONSTRES
       </Button>
     </div>

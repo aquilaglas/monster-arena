@@ -14,14 +14,13 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    icon: path.join(__dirname, '../static/icon.png'),
+    icon: path.join(__dirname, '../static/icon.svg'),
     title: 'Monster Arena',
   });
 
   // En développement, charger depuis le serveur Vite
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools();
   } else {
     // En production, charger depuis les fichiers buildés
     mainWindow.loadFile(path.join(__dirname, '../build/index.html'));

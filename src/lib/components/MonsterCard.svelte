@@ -5,19 +5,15 @@
   interface Props {
     monster: PlayerMonster | MonsterType;
     showStats?: boolean;
-    onclick?: () => void;
   }
 
-  let { monster, showStats = true, onclick }: Props = $props();
+  let { monster, showStats = true }: Props = $props();
 
   const isPlayerMonster = $derived('level' in monster && 'max_hp' in monster);
 </script>
 
 <div
-  class="pixel-card cursor-pointer hover:scale-105 transition-transform"
-  onclick={onclick}
-  role="button"
-  tabindex="0"
+  class="pixel-card transition-transform"
 >
   <div class="retro-animation">
     <img
